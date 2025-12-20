@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simple Weather App</title>
+
+<style>
+    *{
+        margin:0;
+        padding:0;
+        box-sizing:border-box;
+        font-family: "Poppins", sans-serif;
+    }
+
+    body{
+        background: linear-gradient(135deg, #4d4c7d, #1f1d36);
+        height:100vh;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        padding:20px;
+    }
+
+    .container{
+        width:350px;
+        background:rgba(255,255,255,0.1);
+        padding:25px;
+        border-radius:20px;
+        backdrop-filter: blur(12px);
+        text-align:center;
+        color:white;
+        box-shadow:0 8px 32px rgba(0,0,0,0.3);
+        animation: fadeIn 0.7s ease-in-out;
+    }
+
+    @keyframes fadeIn{
+        from{opacity:0; transform:translateY(10px);}
+        to{opacity:1; transform:translateY(0);}
+    }
+
+    .search-box{
+        display:flex;
+        gap:10px;
+        margin-bottom:20px;
+    }
+
+    .search-box input{
+        flex:1;
+        padding:10px 15px;
+        border-radius:10px;
+        border:none;
+        outline:none;
+        font-size:15px;
+    }
+
+    .search-box button{
+        background:#6c63ff;
+        border:none;
+        padding:0 18px;
+        border-radius:10px;
+        cursor:pointer;
+        color:white;
+        font-size:14px;
+        transition:0.3s;
+    }
+
+    .search-box button:hover{
+        background:#514bdb;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .weather-icon{
+        width:120px;
+        margin:15px auto;
+    }
+
+    h2{
+        font-size:28px;
+        margin-bottom:5px;
+    }
+
+    h3{
+        font-weight:400;
+        margin-bottom:10px;
+        opacity:0.8;
+    }
+
+    .temp{
+        font-size:45px;
+        font-weight:600;
+        margin-bottom:10px;
+    }
+
+    .details{
+        display:flex;
+        justify-content:space-between;
+        margin-top:20px;
+        font-size:14px;
+        opacity:0.9;
+    }
+
+    .error{
+        margin-top:10px;
+        color:#ff6b6b;
+        font-size:14px;
+        display:none;
+    }
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+    <div class="search-box">
+        <input type="text" id="cityInput" placeholder="Enter city name">
+        <button onclick="getWeather()">Search</button>
+    </div>
+
+    <div class="error" id="errorMsg">City not found. Try again!</div>
+
+    <!-- WEATHER CONTENT (Initially hidden) -->
+    <div id="weatherContent" class="hidden">
+        <img id="icon" class="weather-icon" src="" alt="">
+
+        <h2 id="city"></h2>
+        <h3 id="condition"></h3>
+        <div class="temp" id="temp"></div>
+
+        <div class="details">
+            <p id="humidity"></p>
+            <p id="wind"></p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const API_KEY = "7e328fe602a84a479ab172041251212";
+    const BASE_URL = "http://api.weatherapi.com/v1/current.json";
+
+    async function getWeather(){
+        const city = document.getElementById("cityInput").value.trim();
+        const errorMsg = document.getElementById("errorMsg");
+        const weatherBox = document.getElementById("weatherContent");
+
+        if(city === ""){
+            errorMsg.innerText = "Please enter a city name!";
+            errorMsg.style.display = "block";
+            weatherBox.classList.add("hidden");
+            return;
+        }
+
+        const url = `${BASE_URL}?key=${API_KEY}&q=${city}&aqi=yes`;
+
+        try{
+            const response = await fetch(url);
+
+            if(!response.ok){
+                throw new Error("City not found");
+            }
+
+            const data = await response.json();
+            updateUI(data);
+
+            errorMsg.style.display = "none";
+            weatherBox.classList.remove("hidden"); // SHOW weather UI
+
+        }catch(error){
+            errorMsg.style.display = "block";
+            weatherBox.classList.add("hidden"); // HIDE weather UI
+        }
+    }
+
+    function updateUI(data){
+        document.getElementById("city").innerText = `${data.location.name}, ${data.location.country}`;
+        document.getElementById("condition").innerText = data.current.condition.text;
+        document.getElementById("temp").innerText = `${data.current.temp_c}°C`;
+        document.getElementById("humidity").innerText = `Humidity: ${data.current.humidity}%`;
+        document.getElementById("wind").innerText = `Wind: ${data.current.wind_kph} km/h`;
+        document.getElementById("icon").src = "https:" + data.current.condition.icon;
+    }
+</script>
+
+</body>
+</html>
